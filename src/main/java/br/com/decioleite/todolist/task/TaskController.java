@@ -24,17 +24,19 @@ public class TaskController {
     private ITaskRepository taskRepository;
 
     @PostMapping("/")
-    public ResponseEntity create(@RequestBody TaskModel TaskModel, HttpServletRequest request) {
-       System.out.println("Chegou no controller " + request.getAttribute("idUser"));
-       var idUser = request.getAttribute("idUser");
-       TaskModel.setIdUser((UUID)idUser);
-       var currentDate = LocalDateTime.now();
-       if(currentDate.isAfter(TaskModel.getStartAt()) || currentDate.isAfter(TaskModel.getEndat()))
-            return ResponseEntity.status(400).body("A data de início e de fim devem ser maior do que a data atual");
-       if (TaskModel.getStartAt().isAfter(TaskModel.getEndat()) || TaskModel.getEndat().isEqual(TaskModel.getStartAt()))
-            return ResponseEntity.status(400).body("A data de fim deve ser maior que a data de início");
-       var task = this.taskRepository.save(TaskModel);
-       return ResponseEntity.status(200).body(task);
+    public ResponseEntity create(@RequestBody TaskModel taskModel, HttpServletRequest request) {
+        System.out.println("Chegou no controller " + request.getAttribute("idUser"));
+        var idUser = request.getAttribute("idUser");
+        taskModel.setIdUser((UUID) idUser);
+        var currentDate = LocalDateTime.now();
+        if (taskModel.getStartAt() == null || taskModel.getEndAt() == null)
+            return ResponseEntity.status(400).body("As datas de início e fim devem ser fornecidas.");
+        if (currentDate.isAfter(taskModel.getStartAt()) || currentDate.isAfter(taskModel.getEndAt()))
+            return ResponseEntity.status(400).body("A data de início e de fim devem ser maiores do que a data atual.");
+        if (taskModel.getStartAt().isAfter(taskModel.getEndAt()) || taskModel.getEndAt().isEqual(taskModel.getStartAt()))
+            return ResponseEntity.status(400).body("A data de fim deve ser maior que a data de início.");
+        var task = this.taskRepository.save(taskModel);
+        return ResponseEntity.status(200).body(task);
     }
 
     @GetMapping("/")
