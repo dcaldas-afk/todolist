@@ -48,9 +48,15 @@ public class TaskController {
 
     // .../tasks/"idUSER"
     @PutMapping("/{id}")
-    public TaskModel update(@RequestBody TaskModel TaskModel, HttpServletRequest request, @PathVariable UUID id) {
+    public ResponseEntity update(@RequestBody TaskModel TaskModel, HttpServletRequest request, @PathVariable UUID id) {
         var task = this.taskRepository.findById(id).orElse(null);
+        if (task == null)
+            return ResponseEntity.status(400).body("Tarefa inexistente");
+        var idUser = request.getAttribute("idUser");
+        if (!task.getIdUser().equals(idUser))
+            return ResponseEntity.status(400).body("Você não tem permissão para executar esta ação");
         Utils.copyNonNullProperties(TaskModel, task);
-        return this.taskRepository.save(task);
+        var taskUpdated = this.taskRepository.save(task);
+        return ResponseEntity.status(200).body(taskUpdated);
     }
 }
